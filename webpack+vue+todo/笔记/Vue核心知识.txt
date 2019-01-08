@@ -1,0 +1,31 @@
+$data 类型：object 详细 蹙额实例观察的数据对象。vue实例代理了对data对象属性的访问
+data
+类型：object||function
+限制：组件的定义只接受function
+vue示例的数据对象。vue将会递归将data的属性转换为getter/setter，从而让data的属性能够相应数据变化
+$el 类型HTMLElement vue实例使用的根dom
+el:类型：string|HTMLElement
+      限制：只在new创建的实例中遵守
+                 提供一个在页面上已存在的 DOM 元素作为 Vue 实例的挂载目标。可以是 CSS 选择器，也可以是一个 HTMLElement 实例。
+                 在实例挂载之后，元素可以用 vm.$el 访问。
+                 如果在实例化时存在这个选项，实例将立即进入编译过程，否则，需要显式调用 vm.$mount() 手动开启编译。
+$option 类型object 用于当前vue实例的初始化选项。需要在选项中包含自定义属性时会有用处
+$props 类型 object 当前组件接收到的props对象 vue实例代理了对其props对象属性的访问
+props：类型array<string>||object
+	   props可以是数组或对象，用于接收来自父组件的数据。props可以是简单的数组，或者使用对象作为替代，对象允许配置高级选项
+	      对象允许配置高级选项，如类型检测、自定义校验和设置默认值
+$parent 类型VUE instance 父实例，如果当前实例有的话
+$children 类型array  VUE instance 当前实例的直接子组件。需要注意$children并不保证顺序，也不是响应式的 如果你发现自己
+		  正在尝试使用$children来进行数据绑定，考虑使用一个数组配合 v-for来生成子组件，并且使用array作为真正的来源
+$root 类型 vue instance 当前组件树的根实例。如果当前实例没有父实例，此实例将会是自己
+$slots
+$scopedSlots
+$refs 类型：Object 一个对象，持有注册过 ref 特性 的所有 DOM 元素和组件实例。
+$isServer
+$watch
+$on
+$emit
+$once
+$forceUpdate()//强制组件重新渲染组件
+$set
+$nextTick

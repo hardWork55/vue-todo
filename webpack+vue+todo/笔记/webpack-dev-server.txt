@@ -1,0 +1,9 @@
+webpack-dev-sever的配置和使用
+cross-env 
+问题
+当使用NODE_ENV=PRODUCTION类似设置环境变量时，大多数windows命令提示将会阻塞。(例外是windows上的bash，它使用本机bash)
+同样，windows和posix命令如何利用环境变量也有所不同。使用POSIX，可以使用$ENV_VAR和您使用的windows
+解决方案
+cross-env使它成为一个单一的命令，而不必担心为平台正确设置或使用环境变量。只需象在POSIX系统上运行一样设置它，病将cross-env正确设置它
+
+

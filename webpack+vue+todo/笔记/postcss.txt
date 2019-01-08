@@ -1,0 +1,23 @@
+postCss 介绍
+postCss本身是一个功能比较单一的工具。它提供了一种方式用JavaScript代码来处理css。负责把css代码解析成抽象语法树结构(Abstract Syntax Tree AST),
+在交由插件来进行处理。插件基于CSS代码的AST所能进行的操作是多种多样的，比如可以支持变量和混入(mixin)，增加浏览器相关的声明前缀，或是把使用
+将来的CSS规范的央视规则转译成当前的CSS规范支持的格式。从这个角度来说，postcss的强大之处在于其不断发展的插件体系。目前postcss已经又200多个功能
+各异的插件。开发人员也可以根据项目的需要，开发出自己的postcss插件
+postcss主要功能
+1、把CSS解析成JavaScript可以操作的AST
+2、调用插件来处理AST并得到结果
+
+使用postcss
+postcss一般不单独使用，而是与已有的构建工具进行集成。postcss与主流的构建工具，如webpack、grunt和gulp都可以进行集成。完成继承之后，，选择满足功能
+需求的postcss插件并进行配置
+
+常用插件
+Autoprefixer
+Autoprefixer是一个流行的postcss插件，起作用视为css中的属性添加浏览器特定的前缀。悠悠CSS的规范的指定和完善一般需要花费比较长的时间，浏览器厂商
+在实现某个CSS新功能时，会使用特定浏览器前缀来作为正式规范版本之前的实验性实现。
+
+
+
+
+
+

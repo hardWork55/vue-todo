@@ -1,0 +1,339 @@
+vue-loader是什么？
+vue-loader是一个webpack的loader，它允许你以一种名为单文件组件（SFCs）的格式撰写Vue组件
+<template>
+	<div></div>
+</template>
+<script></script>
+<style></style>
+Vue Loader还提供很多很酷炫的特性：
+允许组件的每个部分使用其他的webpack loader，例如在<style>的部分使用sass和在<template>的部分使用Pug；
+允许在一个.vue文件中使用自定义块，并对其运用自定义的loader链
+使用webpack loader 将<style>和<template>中引用的资源当做模块依赖来处理
+为每个组件模拟出scoped CSS
+在开发过程中使用热重载来保持状态
+处理资源路径
+当Vue loader 编译单文件组件中的<template>快时，它也会将所遇到的资源URL转换成webpack模块请求
+eg:
+<img src="../imgage.pang"> 将会编译成：
+createElement("img",{
+	attrs:{
+		src:require("../image.png")
+	}
+})
+相对路径：相对当前文件的路径
+绝对路径：　绝对路径又分为本地绝对路径和网络绝对路径。本地路径是指文件在硬盘上真正存在的路径。网络路径就是带有网址的路径，比如你有一个域名www.dreamdu.com，和一个网站空间，上面的四个文件就可以这么表示。
+1.转换规则：
+资源URL转换会遵循如下规则：
+如果路径是绝对路径（/images/foo.png），会原样保留
+如果路径以·开头，将会被看做相对的模块依赖，并按照你的本地文件系统上的目录进行解析。
+如果以~开头，气候的部分将会被看做模块依赖。这意味着你可以用该特性来引用一个Node依赖中的资源<img src="~some-npm-package/foo.png">
+如果路径以@开头，也会被看做是模块依赖，如果你的webpack配置中给@配置了alias，这就很有用了。所有vue-cli创建的项目都默认配置了将@指向/src
+2.相关的loader
+因为像.png这样的文件不是一个JavaScript模块，你需要配置webpack使用file-loader或者url-loader去合理地处理他们
+why？
+转换资源URL的好处是：
+file-loadr可以指定要复制和放置资源文件的位置，以及如何使用版本哈希命名以或得更好的缓存。此外这意味着你可以就近管理图片文件，可以使用相对路径
+而不用担心部署时URL的问题。使用正确的配置，webpack将会在打包输出中自动重写文件路径为正确的URL
+url-loader允许你有条件地将文件转换为内联的base-64URL(当文件小于给定的阈值)，这将会减少小文件的HTTP请求数，如果文件大于该阈值，会自动的交给file-loader
+处理
+使用预处理器
+在webpack中，所有的预处理器需要匹配对应的loader。Vue loader允许你使用其他webpack loader处理vue逐渐的某一部分，他会根据lang特性以及你webpack配置中
+的规则自动推断出要使用的loader
+sass 为了通过sass/scss编译我们的<style>标签：
+npm install -D sass-loader node-sass
+在你的 webpack 配置中：
+
+module.exports = {
+  module: {
+    rules: [
+      // ... 忽略其它规则
+
+      // 普通的 `.scss` 文件和 `*.vue` 文件中的
+      // `<style lang="scss">` 块都应用它
+      {
+        test: /\.scss$/,
+        use: [
+          'vue-style-loader',
+          'css-loader',
+          'sass-loader'
+        ]
+      }
+    ]
+  },
+  // 插件忽略
+}
+sass vs scss
+注意sass-loader会默认处理不基于缩进的scss的语法。为了使用基于缩进的sass语法，你需要向这个loader产地选项：
+// webpack.config.js -> module.rules
+{
+  test: /\.sass$/,
+  use: [
+    'vue-style-loader',
+    'css-loader',
+    {
+      loader: 'sass-loader',
+      options: {
+        indentedSyntax: true
+      }
+    }
+  ]
+}
+共享全局变量
+sass-loader 也支持一个 data 选项，这个选项允许你在所有被处理的文件之间共享常见的变量，而不需要显式地导入它们：
+
+// webpack.config.js -> module.rules
+{
+  test: /\.scss$/,
+  use: [
+    'vue-style-loader',
+    'css-loader',
+    {
+      loader: 'sass-loader',
+      options: {
+        // 你也可以从一个文件读取，例如 `variables.scss`
+        data: `$color: red;`
+      }
+    }
+  ]
+}
+
+Less
+npm install -D less less-loader
+Stylus
+npm install -D stylus stylus-loader
+
+PostCSS
+TIP
+
+Vue Loader v15 不再默认应用 PostCSS 变换。你需要通过 postcss-loader 使用 PostCSS。
+
+npm install -D postcss-loader
+
+CSS Moudules
+
+用法
+首先，css Modules必须通过向css-loader传入modules:true来开启
+// webpack.config.js
+{
+  module: {
+    rules: [
+      // ... 其它规则省略
+      {
+        test: /\.css$/,
+        use: [
+          'vue-style-loader',
+          {
+            loader: 'css-loader',
+            options: {
+              // 开启 CSS Modules
+              modules: true,
+              // 自定义生成的类名
+              localIdentName: '[local]_[hash:base64:8]'
+            }
+          }
+        ]
+      }
+    ]
+  }
+}
+然后在你的<style>上添加module特性
+<style module>
+.red {
+  color: red;
+}
+.bold {
+  font-weight: bold;
+}
+</style>
+这个module特性指引Vue Loader作为名为$style的计算属性，向组件注入CSS Modules局部对象。然后你就可以在末班中通过一个动态类绑定来使用它啦
+<template>
+  <p :class="$style.red">
+    This should be red
+  </p>
+</template>
+
+因为这是一个计算属性，所以它也支持 :class 的对象/数组语法：
+
+<template>
+  <div>
+    <p :class="{ [$style.red]: isRed }">
+      Am I red?
+    </p>
+    <p :class="[$style.red, $style.bold]">
+      Red and bold
+    </p>
+  </div>
+</template>
+
+你也可以通过 JavaScript 访问到它：
+
+<script>
+export default {
+  created () {
+    console.log(this.$style.red)
+    // -> "red_1VyoJ-uZ"
+    // 一个基于文件名和类名生成的标识符
+  }
+}
+</script>
+
+热重载
+“热重载”不只是当你修改文件的时候简单重新加载页面。启用热重载后，当你修改.vue文件时，该组件的所有实例将在不刷新页面的情况下被替换。他甚至保持了
+应用程序和被替换组件的当前状态，当你调整模板或者修改样式时，这极大地提高了开发体验
+状态保留规则
+当编辑一个组件的template时，这个组件实例将就地重新渲染，并保留当前所有的私有状态。能够做到这一点是因为模板被编译成啦新的无副作用的渲染函数
+当编辑一个组件的script时，这个组件实例就地销毁并重新创建。（应用中其他组件的状态将会被保留）这是因为script可能包含带有副作用的生命周期的钩子，所以将重新
+渲染替换为重新加载是必须的，这样做可以确保组件行为的一致性。
+style会通过vue-style-loader自行热重载，所以它不会影响应用的状态
+用法
+当使用脚手架工具vue-cli时，热重载是开箱即用的
+当手动设置你的工程的时，热重载会在你启动webpack-devserver --hot服务时自动开启
+关闭热重载
+热重载默认是开启的，除非遇到以下情况:
+webpack的target的值是node（服务端渲染）
+文本pack会压缩代码
+process.env.NODE_ENV === "production"
+函数式组件
+要声明一个应该编译为函数式组件的模板，请将functional特性添加到模块中。这样以后就可以省略script块中的functional选项
+
+vue-style-loader 实现样式热更替功能
+rimraf 每次打包之前删除上一次打包的包 
+css modules配置
+css modules是一个流行的用语模块化和组合css的系统。vue-loader提供了与css modules的一流集成，可以作为模拟scoped CSS的替代方案
+用法
+首先，CSS Modules必须通过向css-loader传入modules:true来开启
+// webpack.config.js
+{
+  module: {
+    rules: [
+      // ... 其它规则省略
+      {
+        test: /\.css$/,
+        use: [
+          'vue-style-loader',
+          {
+            loader: 'css-loader',
+            options: {
+              // 开启 CSS Modules
+              modules: true,
+              // 自定义生成的类名
+              localIdentName: '[local]_[hash:base64:8]'
+            }
+          }
+        ]
+      }
+    ]
+  }
+}
+然后在你的<style>上添加module特性
+<style module>
+.red {
+  color: red;
+}
+.bold {
+  font-weight: bold;
+}
+</style>
+这个module特性指引vue loader作为名为$style的计算属性，向组件注入CSS Modules局部对象 然后你就可以在模块中通过一个动态类绑定来使用他了
+
+<template>
+  <p :class="$style.red">
+    This should be red
+  </p>
+</template>
+
+因为这是一个计算塑性，所以它支持:class的对象/数组语法：
+<template>
+  <div>
+    <p :class="{ [$style.red]: isRed }">
+      Am I red?
+    </p>
+    <p :class="[$style.red, $style.bold]">
+      Red and bold
+    </p>
+  </div>
+</template>
+你也可以通过JavaScript访问到它：
+
+<script>
+export default {
+  created () {
+    console.log(this.$style.red)
+    // -> "red_1VyoJ-uZ"
+    // 一个基于文件名和类名生成的标识符
+  }
+}
+</script>
+
+可选用法
+如果你指向在某些vue组建中使用css modules，你可以使用oneOf规则病在resourceQuery字符串中检查module字符串：
+// webpack.config.js -> module.rules
+{
+  test: /\.css$/,
+  oneOf: [
+    // 这里匹配 `<style module>`
+    {
+      resourceQuery: /module/,
+      use: [
+        'vue-style-loader',
+        {
+          loader: 'css-loader',
+          options: {
+            modules: true,
+            localIdentName: '[local]_[hash:base64:5]'
+          }
+        }
+      ]
+    },
+    // 这里匹配普通的 `<style>` 或 `<style scoped>`
+    {
+      use: [
+        'vue-style-loader',
+        'css-loader'
+      ]
+    }
+  ]
+}
+和预处理器配合使用
+CSS Modules 可以与其他预处理器一起使用
+// webpack.config.js -> module.rules
+{
+  test: /\.scss$/,
+  use: [
+    'vue-style-loader',
+    {
+      loader: 'css-loader',
+      options: { modules: true }
+    },
+    'sass-loader'
+  ]
+}
+
+自定义注入名称
+在.vue中你可以定义不止一个<style>为了避免被覆盖，你可以通过设置module属性来为他们定义注入后计算属性的名称
+<style module="a">
+  /* 注入标识符 a */
+</style>
+
+<style module="b">
+  /* 注入标识符 b */
+</style>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
